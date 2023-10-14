@@ -1,18 +1,36 @@
 import { useEffect, useState } from "react";
-import { Alert } from "react-native";
+import { View, Alert } from "react-native";
 import * as Location from "expo-location";
 import { Loader, Weather } from "./components";
-import ApiService from "./service/api.service";
+import axios from "axios";
+import { Text } from "react-native";
+// import ApiService from "./service/api.service";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [location, setLocation] = useState(null);
 
+  const getWeather = async (lat, lon) => {
+    const { data } = await axios.get(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=19d15598dd8b46ecbe257581a90cf689&units=metric`
+    );
+    setLocation(data);
+    setIsLoading(false);
+  };
+
+  const setWeather = async (query) => {
+    const { data } = await axios.get(
+      `https://api.openweathermap.org/data/2.5/weather?q=${query}&appid=19d15598dd8b46ecbe257581a90cf689&units=metric`
+    );
+    setLocation(data);
+    setIsLoading(false);
+  };
+
   const getLocation = async () => {
     try {
-      const { status } = await Location.requestBackgroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Permisson to access locationd was denied");
+        Alert.alert("Permission to access location was denied");
         return;
       }
 
@@ -20,14 +38,9 @@ export default function App() {
         coords: { latitude, longitude },
       } = await Location.getCurrentPositionAsync({});
 
-      const { data } = await ApiService.getWeather(
-        latitude,
-        longitude,
-        setIsLoading
-      );
-      setLocation(data);
+      getWeather(latitude, longitude);
     } catch (error) {
-      Alert.alert("I can't find your current location, so bad :(");
+      Alert.alert("I can't find your current location, so bad ):");
     }
   };
 
@@ -35,5 +48,14 @@ export default function App() {
     getLocation();
   }, []);
 
-  return isLoading ? <Loader /> : <Weather />;
+  return isLoading ? (
+    <Loader />
+  ) : (
+    <Weather
+      setWeather={setWeather}
+      temp={location.main.temp}
+      name={location.name}
+      condition={location.weather[0].main}
+    />
+  );
 }
