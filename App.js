@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import * as Location from "expo-location";
 import { Loader, Weather } from "./components";
+import ApiService from "./service/api.service";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
-  const { location, setLocation } = useState({
-    latitude: null,
-    longitude: null,
-  });
+  const [location, setLocation] = useState(null);
 
   const getLocation = async () => {
     try {
@@ -21,18 +19,20 @@ export default function App() {
       const {
         coords: { latitude, longitude },
       } = await Location.getCurrentPositionAsync({});
-      setLocation({ latitude, longitude });
+
+      const { data } = await ApiService.getWeather(
+        latitude,
+        longitude,
+        setIsLoading
+      );
+      setLocation(data);
     } catch (error) {
       Alert.alert("I can't find your current location, so bad :(");
     }
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-      getLocation();
-      console.log(location);
-    }, 1000);
+    getLocation();
   }, []);
 
   return isLoading ? <Loader /> : <Weather />;
