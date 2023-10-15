@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { View, Alert } from "react-native";
+import { Alert } from "react-native";
 import * as Location from "expo-location";
-import { Loader, Weather } from "./components";
 import axios from "axios";
-import { Text } from "react-native";
-// import ApiService from "./service/api.service";
+import { Loader, Weather } from "./components";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -33,11 +31,9 @@ export default function App() {
         Alert.alert("Permission to access location was denied");
         return;
       }
-
       const {
         coords: { latitude, longitude },
       } = await Location.getCurrentPositionAsync({});
-
       getWeather(latitude, longitude);
     } catch (error) {
       Alert.alert("I can't find your current location, so bad ):");
